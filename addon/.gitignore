@@ -1,0 +1,29 @@
+# Environment
+.env
+venv/
+.venv/
+
+# OAuth & Tokens
+credentials.json
+token.pickle
+
+# Cache
+cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
