@@ -11,7 +11,7 @@
  */
 
 // ========== CONFIGURATION ==========
-const GEMINI_API_KEY = 'AIzaSyAjNDlmhh-ndLkG8qnhrJESxLC2JN3x9e8';      // From https://makersuite.google.com
+const GEMINI_API_KEY = '';      // From https://makersuite.google.com
 // ===================================
 
 /**
