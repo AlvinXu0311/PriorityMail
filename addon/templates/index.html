@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail To-Do Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📧 Gmail To-Do Generator</h1>
+            <div class="header-actions">
+                <button onclick="generateTodos()" class="btn btn-primary" id="generate-btn">
+                    🔄 Check for New Emails
+                </button>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_todos }}</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.pending }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.high_priority }}</div>
+                <div class="stat-label">High Priority</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.processed_emails }}</div>
+                <div class="stat-label">Emails Processed</div>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="todo-container">
+            <div class="todo-header">
+                <h2>Your Tasks</h2>
+                <button onclick="clearCompleted()" class="btn btn-small">Clear Completed</button>
+            </div>
+
+            <div id="todo-list" class="todo-list">
+                <div class="loading">Loading tasks...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display todos
+        async function loadTodos() {
+            try {
+                const response = await fetch('/todos');
+                const data = await response.json();
+
+                const todoList = document.getElementById('todo-list');
+
+                if (data.todos.length === 0) {
+                    todoList.innerHTML = '<div class="empty-state">No tasks yet. Click "Check for New Emails" to generate tasks from your inbox.</div>';
+                    return;
+                }
+
+                todoList.innerHTML = data.todos.map((todo, index) => `
+                    <div class="todo-item ${todo.completed ? 'completed' : ''} priority-${todo.priority.toLowerCase()}">
+                        <div class="todo-content">
+                            <input type="checkbox"
+                                   ${todo.completed ? 'checked' : ''}
+                                   onchange="toggleTodo(${index})"
+                                   class="todo-checkbox">
+                            <div class="todo-details">
+                                <div class="todo-task">${escapeHtml(todo.task)}</div>
+                                <div class="todo-meta">
+                                    <span class="priority-badge priority-${todo.priority.toLowerCase()}">${todo.priority}</span>
+                                    <span class="email-subject">From: ${escapeHtml(todo.email_subject)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="deleteTodo(${index})" class="btn-delete">×</button>
+                    </div>
+                `).join('');
+
+                // Update stats
+                updateStats(data.stats);
+            } catch (error) {
+                showMessage('Error loading tasks: ' + error.message, 'error');
+            }
+        }
+
+        // Generate new todos
+        async function generateTodos() {
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Processing...';
+
+            try {
+                const response = await fetch('/generate-todos');
+                const data = await response.json();
+
+                if (data.error) {
+                    showMessage('Error: ' + data.error, 'error');
+                } else {
+                    showMessage(data.message, 'success');
+                    loadTodos();
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Check for New Emails';
+            }
+        }
+
+        // Toggle todo completion
+        async function toggleTodo(index) {
+            try {
+                await fetch(`/todos/${index}/complete`, { method: 'POST' });
+                loadTodos();
+            } catch (error) {
+                showMessage('Error updating task', 'error');
+            }
+        }
+
+        // Delete todo
+        async function deleteTodo(index) {
+            if (!confirm('Delete this task?')) return;
+
+            try {
+                await fetch(`/todos/${index}/delete`, { method: 'DELETE' });
+                loadTodos();
+            } catch (error) {
+                showMessage('Error deleting task', 'error');
+            }
+        }
+
+        // Clear completed todos
+        async function clearCompleted() {
+            if (!confirm('Clear all completed tasks?')) return;
+
+            try {
+                await fetch('/todos/clear-completed', { method: 'POST' });
+                showMessage('Completed tasks cleared', 'success');
+                loadTodos();
+            } catch (error) {
+                showMessage('Error clearing tasks', 'error');
+            }
+        }
+
+        // Update stats display
+        function updateStats(stats) {
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards[0].querySelector('.stat-value').textContent = stats.total_todos;
+            statCards[1].querySelector('.stat-value').textContent = stats.pending;
+            statCards[2].querySelector('.stat-value').textContent = stats.high_priority;
+            statCards[3].querySelector('.stat-value').textContent = stats.processed_emails;
+        }
+
+        // Show message
+        function showMessage(text, type = 'info') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message message-${type}`;
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load todos on page load
+        loadTodos();
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+{
+  "data": {
+    "enron_path": "data/raw/enron_mail_20150507/maildir",
+    "processed_path": "data/processed",
+    "models_path": "data/models",
+    "output_prefix": "email_data"
+  },
+  "model": {
+    "type": "random_forest",
+    "max_features": 5000,
+    "ngram_range": [1, 2],
+    "min_df": 2,
+    "test_size": 0.2,
+    "cv_folds": 5,
+    "random_state": 42
+  },
+  "random_forest": {
+    "n_estimators": 100,
+    "max_depth": 20,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2,
+    "n_jobs": -1
+  },
+  "logistic_regression": {
+    "max_iter": 1000,
+    "n_jobs": -1,
+    "solver": "lbfgs"
+  },
+  "training": {
+    "num_emails": 1000,
+    "num_users": null,
+    "balance_dataset": false,
+    "save_extracted_data": true,
+    "save_feature_importance": true
+  },
+  "text_processing": {
+    "remove_email_addresses": true,
+    "remove_urls": true,
+    "min_email_length": 20,
+    "max_email_length": 50000,
+    "min_subject_length": 1
+  },
+  "priority_keywords": {
+    "high": [
+      "urgent", "asap", "immediately", "critical", "emergency",
+      "deadline", "today", "important", "priority", "confidential",
+      "action required", "response needed", "time sensitive",
+      "must", "now", "quick", "hurry", "crucial", "vital",
+      "breaking", "alert", "issue", "problem", "down", "failure"
+    ],
+    "low": [
+      "fyi", "for your information", "newsletter", "announcement",
+      "no action", "optional", "when you have time", "leisure",
+      "social", "lunch", "party", "casual", "fun", "birthday",
+      "holiday", "vacation", "weekend", "congratulations",
+      "celebration", "reminder", "notice", "heads up"
+    ]
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/email_classifier.log",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "max_file_size": "10MB",
+    "backup_count": 5
+  },
+  "output": {
+    "save_predictions": false,
+    "prediction_format": "json",
+    "include_confidence": true,
+    "include_features": false,
+    "decimal_precision": 3
+  }
+}

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      font-size: 14px;
+      color: #202124;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .header {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .header h2 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a73e8;
+      margin-bottom: 4px;
+    }
+
+    .subject {
+      font-size: 12px;
+      color: #5f6368;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-weight: 500;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .priority-high {
+      background: #fce8e6;
+      color: #c5221f;
+    }
+
+    .priority-medium {
+      background: #fef7e0;
+      color: #f9ab00;
+    }
+
+    .priority-low {
+      background: #e8f0fe;
+      color: #1967d2;
+    }
+
+    .confidence {
+      font-size: 12px;
+      color: #5f6368;
+      margin-bottom: 4px;
+    }
+
+    .reason {
+      font-size: 12px;
+      font-style: italic;
+      color: #5f6368;
+      margin-bottom: 12px;
+    }
+
+    .cached-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: #e8f5e9;
+      color: #1e8e3e;
+      border-radius: 12px;
+      font-size: 11px;
+      margin-bottom: 12px;
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-weight: 500;
+      font-size: 14px;
+      color: #202124;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .todo-list {
+      list-style: none;
+    }
+
+    .todo-item {
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      background: #f8f9fa;
+      border-left: 3px solid #1a73e8;
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 16px;
+      color: #5f6368;
+      font-size: 13px;
+    }
+
+    .button {
+      width: 100%;
+      padding: 10px 16px;
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .button:hover {
+      background: #1765cc;
+    }
+
+    .button-secondary {
+      background: #fff;
+      color: #1a73e8;
+      border: 1px solid #dadce0;
+    }
+
+    .button-secondary:hover {
+      background: #f8f9fa;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 16px;
+      color: #5f6368;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #1a73e8;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error {
+      padding: 12px;
+      background: #fce8e6;
+      color: #c5221f;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e0e0e0;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>Analyzing email...</div>
+    </div>
+  </div>
+
+  <script>
+    function showResults(data) {
+      const app = document.getElementById('app');
+
+      if (data.error) {
+        app.innerHTML = `
+          <div class="error">
+            <strong>Error:</strong> ${data.error}
+          </div>
+          <button class="button button-secondary" onclick="refresh()">Retry</button>
+        `;
+        return;
+      }
+
+      const priority = data.priority || 'MEDIUM';
+      const confidence = data.confidence || 0;
+      const todos = data.todos || [];
+      const cached = data.cached || false;
+
+      let html = `
+        <div class="header">
+          <h2>📧 Email Analysis</h2>
+          <div class="subject">${escapeHtml(data.subject || '')}</div>
+        </div>
+
+        <div class="section">
+          <div class="priority-badge priority-${priority.toLowerCase()}">
+            ${priority} PRIORITY
+          </div>
+          <div class="confidence">Confidence: ${(confidence * 100).toFixed(0)}%</div>
+      `;
+
+      if (data.reason) {
+        html += `<div class="reason">${escapeHtml(data.reason)}</div>`;
+      }
+
+      if (cached) {
+        html += `
+          <div class="cached-badge">
+            ✓ Loaded from cache
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+
+      if (todos.length > 0) {
+        html += `
+          <div class="section">
+            <div class="section-title">
+              📝 Action Items
+            </div>
+            <ul class="todo-list">
+        `;
+
+        todos.forEach(todo => {
+          html += `<li class="todo-item">• ${escapeHtml(todo)}</li>`;
+        });
+
+        html += `
+            </ul>
+          </div>
+        `;
+      } else if (priority === 'LOW') {
+        html += `
+          <div class="empty-state">
+            Low priority emails are skipped<br>to save API tokens
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="empty-state">
+            No actionable tasks found
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="divider"></div>
+        <button class="button button-secondary" onclick="refresh()">🔄 Refresh Analysis</button>
+      `;
+
+      app.innerHTML = html;
+    }
+
+    function showError(message) {
+      document.getElementById('app').innerHTML = `
+        <div class="error">
+          <strong>Error:</strong> ${message}
+        </div>
+        <button class="button button-secondary" onclick="refresh()">Retry</button>
+      `;
+    }
+
+    function refresh() {
+      location.reload();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Initialize
+    google.script.run
+      .withSuccessHandler(showResults)
+      .withFailureHandler(showError)
+      .analyzeCurrentEmail();
+  </script>
+</body>
+</html>
