@@ -119,20 +119,21 @@ def main():
     else:
         print("\n[SKIP] Step 1: Extract emails")
 
-    # Step 2: Auto-label emails
-    if '2' not in skip_steps:
-        cmd = [
-            'python', 'pipeline/02_auto_label_emails.py',
-            '--input', 'data/raw/emails_raw.csv',
-            '--output', 'data/labeled/emails_labeled.csv',
-            '--embedder', args.embedder,
-            '--embedding-model', args.embedding_model
-        ]
-        if args.balance:
-            cmd.append('--balance')
-        step_times.append(run_command(cmd, "Step 2: Auto-label emails"))
-    else:
-        print("\n[SKIP] Step 2: Auto-label emails")
+    # Step 2: Auto-label emails (COMMENTED OUT - Use manual labeling)
+    # if '2' not in skip_steps:
+    #     cmd = [
+    #         'python', 'pipeline/02_auto_label_emails.py',
+    #         '--input', 'data/raw/emails_raw.csv',
+    #         '--output', 'data/labeled/emails_labeled.csv',
+    #         '--embedder', args.embedder,
+    #         '--embedding-model', args.embedding_model
+    #     ]
+    #     if args.balance:
+    #         cmd.append('--balance')
+    #     step_times.append(run_command(cmd, "Step 2: Auto-label emails"))
+    # else:
+    #     print("\n[SKIP] Step 2: Auto-label emails")
+    print("\n[COMMENTED OUT] Step 2: Auto-label emails - Please manually label emails instead")
 
     # Step 3: Train classifier
     if '3' not in skip_steps:
@@ -171,7 +172,6 @@ def main():
     print(f"\nStep execution times:")
     step_names = [
         "Extract emails",
-        "Auto-label emails",
         "Train classifier",
         "Predict priorities"
     ]
