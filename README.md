@@ -4,7 +4,7 @@
 >
 > This is a prototype implementation developed for academic evaluation. Not intended for production use without further testing and refinement.
 
-**Automated Multi-Class Classification Approach** - Direct priority prediction using auto-labeled training data.
+**Multi-Class Classification Approach** - Direct priority prediction using manually labeled training data.
 
 ---
 
@@ -15,7 +15,8 @@
 pip install -r requirements.txt
 ollama pull qwen3-embedding
 
-# 2. Run full pipeline (extract → label → train → predict)
+# 2. Run full pipeline (extract → manual label → train → predict)
+# Note: Step 2 (auto-labeling) is now commented out - use manual labeling instead
 python pipeline/run_full_pipeline.py --source data/enron_mail_20150507 --limit 1500
 
 # 3. View results
@@ -71,13 +72,13 @@ nano .env  # Add your OPENAI_API_KEY and GEMINI_API_KEY
            │
            ▼
     ┌──────────────────┐
-    │  02_AUTO_LABEL   │ ──► Hybrid Auto-Labeling
-    │  emails.py       │     • Rule-based (keywords, urgency)
-    └──────────────────┘     • Embedding similarity (to references)
-           │                 • Assigns HIGH/MEDIUM/LOW
+    │  02_MANUAL_LABEL │ ──► Manual Labeling
+    │  emails.py       │     • Manually assign priority labels
+    └──────────────────┘     • HIGH/MEDIUM/LOW classification
+           │
            ▼
     emails_labeled.csv
-    (1500 emails with priority labels)
+    (1500 emails with manually assigned priority labels)
            │
            ▼
     ┌──────────────────┐
@@ -160,13 +161,13 @@ PriorityMail/
 │
 ├── pipeline/                      # Main pipeline (numbered steps)
 │   ├── 01_extract_emails.py            # Extract raw emails → CSV
-│   ├── 02_auto_label_emails.py         # Auto-label → CSV
+│   ├── 02_auto_label_emails.py         # (COMMENTED OUT - Use manual labeling)
 │   ├── 03_train_classifier.py          # Train classifier → PKL
 │   ├── 04_predict_priority.py          # Predict → CSV
 │   └── run_full_pipeline.py            # Master runner
 │
 ├── core/                          # Reusable modules
-│   ├── hybrid_labeler.py               # Auto-labeling (rules + embeddings)
+│   ├── hybrid_labeler.py               # (COMMENTED OUT - Use manual labeling)
 │   ├── reference_examples.py           # Reference emails for similarity
 │   └── embeddings.py                   # Embedding generation
 │
@@ -209,18 +210,13 @@ python pipeline/01_extract_emails.py \
 
 **Output:** `data/raw/emails_raw.csv` (unlabeled)
 
-### Step 2: Auto-Label Emails
+### Step 2: Manual Label Emails
 
-```bash
-python pipeline/02_auto_label_emails.py \
-  --input data/raw/emails_raw.csv \
-  --output data/labeled/emails_labeled.csv \
-  --embedder ollama \
-  --embedding-model qwen3-embedding \
-  --balance
-```
+Manually label emails in `data/raw/emails_raw.csv` and save to `data/labeled/emails_labeled.csv`.
 
-**Output:** `data/labeled/emails_labeled.csv` (with auto-generated labels)
+Required columns: `email_id`, `subject`, `body`, `sender`, `timestamp`, `folder`, `priority`
+
+**Output:** `data/labeled/emails_labeled.csv` (with manually assigned labels)
 
 ### Step 3: Train Classification Model
 

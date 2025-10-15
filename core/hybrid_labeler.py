@@ -1,10 +1,14 @@
 """
 Hybrid Priority Labeler
 
+COMMENTED OUT - Using manual labeling instead of auto-labeling.
+
 Combines rule-based heuristics with embedding-based similarity matching.
 No LLM required - uses local embeddings and deterministic rules.
 """
 
+# COMMENTED OUT - Use manual labeling instead
+"""
 import numpy as np
 from typing import Dict, Tuple
 import logging
@@ -259,3 +263,4 @@ class HybridPriorityLabeler:
             'method': 'rules_fallback',
             'scores': {'high': high_score, 'medium': medium_score, 'low': low_score}
         }
+"""

@@ -2,6 +2,8 @@
 """
 STEP 2: AUTO-LABEL EMAILS
 
+COMMENTED OUT - Using manual labeling instead of auto-labeling.
+
 Auto-labels emails using hybrid approach (rules + embeddings).
 NO manual labels required - fully automatic!
 
@@ -14,6 +16,8 @@ New columns added:
 - label_method: How it was labeled (rules/embedding/fallback)
 """
 
+# COMMENTED OUT - Use manual labeling instead
+"""
 import sys
 import os
 import csv
@@ -166,3 +170,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
